@@ -195,9 +195,10 @@ def run(trainp="overnight/calendar_train_delex.tsv",
                   target_namespace='fl_tokens',
                   beam_size=1,
                   use_bleu=True)
-    smodel.to(device)
 
     smodel_out = smodel(batch["nl"], batch["fl"])
+
+    smodel.to(device)
 
     optim = torch.optim.Adam(smodel.parameters(), lr=lr)
     trainer = Trainer(model=smodel,
