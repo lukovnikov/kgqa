@@ -113,7 +113,7 @@ class Seq2Seq(SimpleSeq2Seq):
         else:
             output_dict = {}
 
-        if True: #not self.training:
+        if not self.training:
             state = self._init_decoder_state(state)
             predictions = self._forward_beam_search(state)
             output_dict.update(predictions)
@@ -134,9 +134,10 @@ class Seq2Seq(SimpleSeq2Seq):
     @overrides
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         all_metrics: Dict[str, float] = {}
-        if self._bleu:
-            all_metrics.update(self._bleu.get_metric(reset=reset))
-        all_metrics.update({"SeqAcc": self._seqacc.get_metric(reset=reset)})
+        if not self.training:
+            if self._bleu:
+                all_metrics.update(self._bleu.get_metric(reset=reset))
+            all_metrics.update({"SeqAcc": self._seqacc.get_metric(reset=reset)})
         return all_metrics
 
 
