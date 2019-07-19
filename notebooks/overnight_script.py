@@ -150,6 +150,7 @@ def run(trainp="overnight/calendar_train_delex.tsv",
         lr=.001,
         gpu=0,
         cuda=False, epochs=20):
+    device = torch.device("cuda", gpu) if cuda else torch.device("cpu")
     tt = q.ticktock("script")
     tt.tick("loading data")
     def tokenizer(x:str, splitter:WordSplitter=None)->List[str]:
@@ -194,6 +195,7 @@ def run(trainp="overnight/calendar_train_delex.tsv",
                   target_namespace='fl_tokens',
                   beam_size=1,
                   use_bleu=True)
+    smodel.to(device)
 
     smodel_out = smodel(batch["nl"], batch["fl"])
 
