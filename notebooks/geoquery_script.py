@@ -158,6 +158,8 @@ def run(trainp="geoquery/train.txt",
         maxtime=100,
         lr=.001,
         gpu=0,
+        gradnorm=1.,
+        beamsize=8,
         cuda=False, epochs=20):
     device = torch.device("cuda", gpu) if cuda else torch.device("cpu")
     tt = q.ticktock("script")
@@ -202,7 +204,7 @@ def run(trainp="geoquery/train.txt",
                   target_embedding_dim=embdim,
                   attention=attention,
                   target_namespace='fl_tokens',
-                  beam_size=1,
+                  beam_size=beamsize,
                   use_bleu=False)
 
     smodel_out = smodel(batch["nl"], batch["fl"])
@@ -216,6 +218,7 @@ def run(trainp="geoquery/train.txt",
                       train_dataset=trainds,
                       validation_dataset=testds,
                       num_epochs=epochs,
+                      grad_norm=gradnorm,
                       cuda_device=gpu if cuda else -1)
 
     metrics = trainer.train()
