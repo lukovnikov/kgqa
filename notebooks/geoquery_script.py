@@ -80,6 +80,7 @@ class Seq2Seq(SimpleSeq2Seq):
                                       scheduled_sampling_ratio=scheduled_sampling_ratio,
                                       use_bleu=use_bleu)
         self._seqacc = SequenceAccuracy()
+        self._train_seqacc = SequenceAccuracy()
 
     @overrides
     def forward(self,  # type: ignore
@@ -105,11 +106,16 @@ class Seq2Seq(SimpleSeq2Seq):
         source_tokens, target_tokens = nl, fl
         state = self._encode(source_tokens)
 
-        if target_tokens:
+        if target_tokens and self.training:
             state = self._init_decoder_state(state)
             # The `_forward_loop` decodes the input sequence and computes the loss during training
             # and validation.
             output_dict = self._forward_loop(state, target_tokens)
+            predictions = output_dict["predictions"]
+            seqacc_gold = target_tokens["tokens"][:, 1:]
+            self._train_seqacc(predictions.unsqueeze(1)[:, :, :seqacc_gold.size(1)],
+                         seqacc_gold,
+                         mask=(seqacc_gold != 0).long())
         else:
             output_dict = {}
 
@@ -138,6 +144,8 @@ class Seq2Seq(SimpleSeq2Seq):
             if self._bleu:
                 all_metrics.update(self._bleu.get_metric(reset=reset))
             all_metrics.update({"SeqAcc": self._seqacc.get_metric(reset=reset)})
+        else:
+            all_metrics.update({"T-SeqAcc": self._train_seqacc.get_metric(reset=reset)})
         return all_metrics
 
 
@@ -195,7 +203,7 @@ def run(trainp="geoquery/train.txt",
                   attention=attention,
                   target_namespace='fl_tokens',
                   beam_size=1,
-                  use_bleu=True)
+                  use_bleu=False)
 
     smodel_out = smodel(batch["nl"], batch["fl"])
 
