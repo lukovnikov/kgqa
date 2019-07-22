@@ -178,7 +178,7 @@ def run(trainp="geoquery/train.txt",
     tt.tock("vocabulary built")
 
     tt.tick("making iterator")
-    iterator = BucketIterator(sorting_keys=[("nl", "num_tokens"), ("fl", "num_tokens")],
+    iterator = BucketIterator(sorting_keys=[("fl", "num_tokens"), ("nl", "num_tokens")],
                               batch_size=batsize,
                               biggest_batch_first=True)
     iterator.index_with(vocab)
